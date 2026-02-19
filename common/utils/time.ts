@@ -1,0 +1,97 @@
+/**
+ * Format a UTC ISO string into local time for a given IANA timezone.
+ * Returns e.g. "14:30 WET" or "15:30 CET"
+ */
+export function formatLocalTime(utcIso: string, timezone: string): string {
+  return new Intl.DateTimeFormat("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: timezone,
+    timeZoneName: "short",
+  }).format(new Date(utcIso));
+}
+
+/**
+ * Format a UTC ISO string into compact date+time with UTC offset.
+ * Returns e.g. "20/02/26 14:30 (+2)"
+ */
+export function formatCompactDateTime(utcIso: string, timezone: string): string {
+  const date = new Date(utcIso);
+  const formatter = new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: timezone,
+  });
+  const parts = formatter.formatToParts(date);
+  const day = parts.find(p => p.type === "day")?.value ?? "00";
+  const month = parts.find(p => p.type === "month")?.value ?? "00";
+  const year = parts.find(p => p.type === "year")?.value ?? "00";
+  const hour = parts.find(p => p.type === "hour")?.value ?? "00";
+  const minute = parts.find(p => p.type === "minute")?.value ?? "00";
+  
+  const offsetFormatter = new Intl.DateTimeFormat("en", {
+    timeZone: timezone,
+    timeZoneName: "shortOffset",
+  });
+  const offsetParts = offsetFormatter.formatToParts(date);
+  const offsetRaw = offsetParts.find(p => p.type === "timeZoneName")?.value ?? "GMT+0";
+  const offset = offsetRaw.replace("GMT", "") || "+0";
+  
+  return `${day}/${month}/${year} ${hour}:${minute} (${offset})`;
+}
+
+/**
+ * Format a UTC ISO string into a short date + local time for a given timezone.
+ * Returns e.g. "20/02/2026 14:30 WET"
+ */
+export function formatLocalDateTime(utcIso: string, timezone: string): string {
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: timezone,
+    timeZoneName: "short",
+  }).format(new Date(utcIso));
+}
+
+/**
+ * Returns duration string between two UTC ISO strings, e.g. "2h 30m" or "1d 5h 30m"
+ */
+export function formatDuration(departureUtc: string, arrivalUtc: string): string {
+  const diffMs = new Date(arrivalUtc).getTime() - new Date(departureUtc).getTime();
+  if (diffMs <= 0) return "—";
+  const totalMinutes = Math.floor(diffMs / 60000);
+  const days = Math.floor(totalMinutes / 1440);
+  const hours = Math.floor((totalMinutes % 1440) / 60);
+  const minutes = totalMinutes % 60;
+  
+  if (days > 0) {
+    return `${days}d ${hours}h ${minutes}m`;
+  }
+  return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+}
+
+/**
+ * Returns true if arrival is exactly 1 calendar day after departure,
+ * both evaluated in their respective timezones.
+ */
+export function isNextDay(
+  departureUtc: string,
+  departureTimezone: string,
+  arrivalUtc: string,
+  arrivalTimezone: string,
+): boolean {
+  const depDate = new Date(departureUtc);
+  const arrDate = new Date(arrivalUtc);
+  const depFormatter = new Intl.DateTimeFormat("en-CA", { timeZone: departureTimezone });
+  const arrFormatter = new Intl.DateTimeFormat("en-CA", { timeZone: arrivalTimezone });
+  const depDay = depFormatter.format(depDate);
+  const arrDay = arrFormatter.format(arrDate);
+  const diffDays = Math.floor((Date.parse(arrDay) - Date.parse(depDay)) / 86400000);
+  return diffDays === 1;
+}
