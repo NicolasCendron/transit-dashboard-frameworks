@@ -22,6 +22,7 @@ export default {
     arrival: "Chegada",
     status: "Status",
     driver: "Motorista",
+    duration: "Duração",
     actions: "Ações",
   },
   action: {

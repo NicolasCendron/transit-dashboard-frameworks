@@ -78,8 +78,9 @@ export const SEED_TRIPS: Trip[] = [
     destination: "Copenhagen",
     departureTime: "2026-02-20T12:00:00Z",
     departureTimezone: "Europe/Stockholm",
+    arrivalTime: "2026-02-20T13:45:00Z",
     arrivalTimezone: "Europe/Copenhagen",
-    status: "scheduled",
+    status: "arrived",
     driver: "Erik Lindqvist",
   },
   {

@@ -14,7 +14,7 @@ const { t } = useLocale();
           <th>{{ t("table.departure") }}</th>
           <th>{{ t("table.arrival") }}</th>
           <th>{{ t("table.status") }}</th>
-          <th>Duration</th>
+          <th>{{ t("table.duration") }}</th>
           <th>{{ t("table.driver") }}</th>
           <th>{{ t("table.actions") }}</th>
         </tr>

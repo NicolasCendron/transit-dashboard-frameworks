@@ -74,7 +74,7 @@ onMounted(loadTrip);
             <TripStatusBadge :status="store.currentTrip.status" />
           </div>
           <div class="detail-item" v-if="store.currentTrip.arrivalTime">
-            <label>Duration</label>
+            <label>{{ t("table.duration") }}</label>
             <span>{{ formatDuration(store.currentTrip.departureTime, store.currentTrip.arrivalTime) }}</span>
           </div>
           <div class="detail-item">

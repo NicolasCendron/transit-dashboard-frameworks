@@ -15,6 +15,7 @@ const mapped = computed(() =>
   <CustomSelect
     :modelValue="locale"
     :options="mapped"
+    class="lang-select"
     @update:modelValue="setLocale($event as Locale)"
   >
     <template #trigger="{ option }">{{ option?.label }}</template>

@@ -58,6 +58,14 @@
   padding: 0;
 }
 
+.lang-select .custom-select-trigger {
+  justify-content: center;
+}
+
+.lang-select .custom-select-option {
+  text-align: center;
+}
+
 .status-select-trigger-badge {
   display: flex;
   align-items: center;

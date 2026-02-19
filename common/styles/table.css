@@ -23,3 +23,11 @@
 .table tr:last-child td {
   border-bottom: none;
 }
+
+.table-row-clickable {
+  cursor: pointer;
+}
+
+.table-row-clickable:hover td {
+  background: var(--color-bg);
+}

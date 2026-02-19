@@ -8,7 +8,7 @@ import { EUROPEAN_CITIES, timezoneForCity, utcOffsetLabel } from "@common/models
 import { formatDuration } from "@common/utils/time";
 import { validateTripForm } from "@/utils/validation";
 import type { TripStatus } from "@common/models/trip";
-import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import TripFormSkeleton from "@/components/TripFormSkeleton.vue";
 import StatusSelect from "@/components/StatusSelect.vue";
 
 const route = useRoute();
@@ -110,7 +110,7 @@ onMounted(async () => {
       {{ isEdit ? t("form.editTitle") : t("form.createTitle") }}
     </h2>
 
-    <LoadingSpinner v-if="isEdit && store.loading" />
+    <TripFormSkeleton v-if="isEdit && store.loading" />
 
     <form v-else class="card" @submit.prevent="handleSubmit">
       <div class="form-row">

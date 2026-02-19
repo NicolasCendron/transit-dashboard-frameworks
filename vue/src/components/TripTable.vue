@@ -24,13 +24,13 @@ const { t } = useLocale();
           <th>{{ t("table.departure") }}</th>
           <th>{{ t("table.arrival") }}</th>
           <th>{{ t("table.status") }}</th>
-          <th>Duration</th>
+          <th>{{ t("table.duration") }}</th>
           <th>{{ t("table.driver") }}</th>
           <th>{{ t("table.actions") }}</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="trip in trips" :key="trip.id">
+        <tr v-for="trip in trips" :key="trip.id" class="table-row-clickable" @click="$emit('view', trip.id)">
           <td>{{ trip.origin }}</td>
           <td>{{ trip.destination }}</td>
           <td class="time-cell">{{ formatCompactDateTime(trip.departureTime, trip.departureTimezone) }}</td>
@@ -49,16 +49,16 @@ const { t } = useLocale();
           <td>{{ trip.driver }}</td>
           <td>
             <div class="actions">
-              <button class="btn btn-sm" @click="$emit('view', trip.id)">
+              <button class="btn btn-sm" @click.stop="$emit('view', trip.id)">
                 {{ t("action.view") }}
               </button>
-              <button class="btn btn-sm" @click="$emit('edit', trip.id)">
+              <button class="btn btn-sm" @click.stop="$emit('edit', trip.id)">
                 {{ t("action.edit") }}
               </button>
               <button
                 v-if="trip.status !== 'cancelled' && trip.status !== 'arrived'"
                 class="btn btn-sm btn-danger"
-                @click="$emit('cancel', trip.id)"
+                @click.stop="$emit('cancel', trip.id)"
               >
                 {{ t("action.cancel") }}
               </button>

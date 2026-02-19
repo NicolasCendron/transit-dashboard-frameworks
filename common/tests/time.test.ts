@@ -5,8 +5,8 @@ import {
   formatCompactDateTime,
   formatDuration,
   isNextDay,
-} from "../../../common/utils/time";
-import { utcOffsetLabel, timezoneForCity } from "../../../common/models/cities";
+} from "../utils/time";
+import { utcOffsetLabel, timezoneForCity } from "../models/cities";
 
 describe("formatLocalTime", () => {
   it("formats UTC time in the given timezone", () => {
@@ -88,48 +88,23 @@ describe("formatDuration", () => {
 
 describe("isNextDay", () => {
   it("returns false when arrival is same day as departure", () => {
-    expect(
-      isNextDay(
-        "2026-02-20T08:00:00Z", "Europe/Lisbon",
-        "2026-02-20T12:00:00Z", "Europe/Madrid",
-      ),
-    ).toBe(false);
+    expect(isNextDay("2026-02-20T08:00:00Z", "Europe/Lisbon", "2026-02-20T12:00:00Z", "Europe/Madrid")).toBe(false);
   });
 
   it("returns true for overnight trip crossing midnight", () => {
-    expect(
-      isNextDay(
-        "2026-02-20T22:00:00Z", "Europe/Lisbon",
-        "2026-02-21T01:00:00Z", "Europe/Paris",
-      ),
-    ).toBe(true);
+    expect(isNextDay("2026-02-20T22:00:00Z", "Europe/Lisbon", "2026-02-21T01:00:00Z", "Europe/Paris")).toBe(true);
   });
 
   it("returns false when same UTC date but different timezones on same calendar day", () => {
-    expect(
-      isNextDay(
-        "2026-02-20T10:00:00Z", "Europe/London",
-        "2026-02-20T14:00:00Z", "Europe/Warsaw",
-      ),
-    ).toBe(false);
+    expect(isNextDay("2026-02-20T10:00:00Z", "Europe/London", "2026-02-20T14:00:00Z", "Europe/Warsaw")).toBe(false);
   });
 
   it("returns false for multi-day trips (2+ days)", () => {
-    expect(
-      isNextDay(
-        "2026-02-20T08:00:00Z", "Europe/Lisbon",
-        "2026-02-22T08:00:00Z", "Europe/Paris",
-      ),
-    ).toBe(false);
+    expect(isNextDay("2026-02-20T08:00:00Z", "Europe/Lisbon", "2026-02-22T08:00:00Z", "Europe/Paris")).toBe(false);
   });
 
   it("returns false when arrival is before departure", () => {
-    expect(
-      isNextDay(
-        "2026-02-21T08:00:00Z", "Europe/Lisbon",
-        "2026-02-20T08:00:00Z", "Europe/Paris",
-      ),
-    ).toBe(false);
+    expect(isNextDay("2026-02-21T08:00:00Z", "Europe/Lisbon", "2026-02-20T08:00:00Z", "Europe/Paris")).toBe(false);
   });
 });
 
@@ -139,13 +114,11 @@ describe("utcOffsetLabel", () => {
   });
 
   it("returns +1 for CET timezone in winter", () => {
-    const result = utcOffsetLabel("Europe/Paris");
-    expect(result).toMatch(/[+-]\d+/);
+    expect(utcOffsetLabel("Europe/Paris")).toMatch(/[+-]\d+/);
   });
 
   it("returns +2 for EET timezone", () => {
-    const result = utcOffsetLabel("Europe/Athens");
-    expect(result).toMatch(/[+-]\d+/);
+    expect(utcOffsetLabel("Europe/Athens")).toMatch(/[+-]\d+/);
   });
 });
 
