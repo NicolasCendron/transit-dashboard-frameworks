@@ -50,3 +50,12 @@ export function utcOffsetLabel(timezone: string): string {
   // raw is like "GMT+2", "GMT+1", "GMT" (for +0)
   return raw.replace("GMT", "") || "+0";
 }
+
+/** Returns timezone abbreviation like "CET", "WET", "GMT" for a given IANA timezone. */
+export function timezoneAbbr(timezone: string): string {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: timezone,
+    timeZoneName: "short",
+  }).formatToParts(new Date());
+  return parts.find((p) => p.type === "timeZoneName")?.value ?? "UTC";
+}

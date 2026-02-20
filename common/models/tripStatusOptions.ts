@@ -2,17 +2,17 @@ import type { TripStatus } from "./trip";
 
 export interface StatusOption {
   value: TripStatus | "";
-  key: string;
+  label: string;
 }
 
 export const tripStatusOptions: StatusOption[] = [
-  { value: "scheduled", key: "status.scheduled" },
-  { value: "delayed",   key: "status.delayed" },
-  { value: "cancelled", key: "status.cancelled" },
-  { value: "arrived",   key: "status.arrived" },
+  { value: "scheduled", label: "status.scheduled" },
+  { value: "delayed",   label: "status.delayed" },
+  { value: "cancelled", label: "status.cancelled" },
+  { value: "arrived",   label: "status.arrived" },
 ];
 
 export const tripStatusFilterOptions: StatusOption[] = [
-  { value: "", key: "trips.allStatuses" },
+  { value: "", label: "trips.allStatuses" },
   ...tripStatusOptions,
 ];

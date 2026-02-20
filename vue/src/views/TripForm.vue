@@ -4,7 +4,7 @@ import { useRoute, useRouter } from "vue-router";
 import { useTripStore } from "@/stores/tripStore";
 import { useLocale } from "@/composables/useLocale";
 import { tripStatusOptions } from "@common/models/tripStatusOptions";
-import { EUROPEAN_CITIES, timezoneForCity, utcOffsetLabel } from "@common/models/cities";
+import { EUROPEAN_CITIES, timezoneForCity, timezoneAbbr } from "@common/models/cities";
 import { formatDuration } from "@common/utils/time";
 import { validateTripForm } from "@/utils/validation";
 import type { TripStatus } from "@common/models/trip";
@@ -30,6 +30,8 @@ const form = ref({
 
 const departureTimezone = computed(() => timezoneForCity(form.value.origin));
 const arrivalTimezone = computed(() => timezoneForCity(form.value.destination));
+
+const getTzAbbr = (tz: string) => timezoneAbbr(tz);
 
 const calculatedDuration = computed(() => {
   if (!form.value.departureTime || !form.value.arrivalTime) return "—";
@@ -119,7 +121,7 @@ onMounted(async () => {
           <select v-model="form.origin" class="form-select" :class="{ 'is-invalid': errors.origin }">
             <option value="" disabled>—</option>
             <option v-for="city in EUROPEAN_CITIES" :key="city.name" :value="city.name">
-              {{ city.name }} ({{ city.timezone }} {{ utcOffsetLabel(city.timezone) }})
+              {{ city.name }} ({{ getTzAbbr(city.timezone) }})
             </option>
           </select>
           <p v-if="errors.origin" class="form-error">{{ errors.origin }}</p>
@@ -130,7 +132,7 @@ onMounted(async () => {
           <select v-model="form.destination" class="form-select" :class="{ 'is-invalid': errors.destination }">
             <option value="" disabled>—</option>
             <option v-for="city in EUROPEAN_CITIES" :key="city.name" :value="city.name">
-              {{ city.name }} ({{ city.timezone }} {{ utcOffsetLabel(city.timezone) }})
+              {{ city.name }} ({{ getTzAbbr(city.timezone) }})
             </option>
           </select>
           <p v-if="errors.destination" class="form-error">{{ errors.destination }}</p>
@@ -141,7 +143,7 @@ onMounted(async () => {
         <div class="form-group">
           <label class="form-label">
             {{ t("form.departureTime") }}
-            <span v-if="departureTimezone" class="form-tz-hint">{{ departureTimezone }} {{ utcOffsetLabel(departureTimezone) }}</span>
+            <span v-if="departureTimezone" class="form-tz-hint">{{ getTzAbbr(departureTimezone) }}</span>
           </label>
           <input
             v-model="form.departureTime"
@@ -162,7 +164,7 @@ onMounted(async () => {
         <div class="form-group">
           <label class="form-label">
             {{ t("form.arrivalTime") }}
-            <span v-if="arrivalTimezone" class="form-tz-hint">{{ arrivalTimezone }} {{ utcOffsetLabel(arrivalTimezone) }}</span>
+            <span v-if="arrivalTimezone" class="form-tz-hint">{{ getTzAbbr(arrivalTimezone) }}</span>
           </label>
           <input
             v-model="form.arrivalTime"

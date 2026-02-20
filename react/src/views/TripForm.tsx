@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTripStore } from "@/store/tripStore";
 import { useLocale } from "@/hooks/useLocale";
-import { EUROPEAN_CITIES, timezoneForCity, utcOffsetLabel } from "@common/models/cities";
+import { EUROPEAN_CITIES, timezoneForCity, timezoneAbbr } from "@common/models/cities";
 import { tripStatusOptions } from "@common/models/tripStatusOptions";
 import { formatDuration } from "@common/utils/time";
 import { validateTripForm } from "@common/utils/validation";
@@ -99,7 +99,7 @@ export default function TripForm() {
             <select className={`form-select${errors.origin ? " is-invalid" : ""}`} value={form.origin} onChange={e => update("origin", e.target.value)}>
               <option value="" disabled>—</option>
               {EUROPEAN_CITIES.map(city => (
-                <option key={city.name} value={city.name}>{city.name} ({city.timezone} {utcOffsetLabel(city.timezone)})</option>
+                <option key={city.name} value={city.name}>{city.name} ({timezoneAbbr(city.timezone)})</option>
               ))}
             </select>
             {errors.origin && <p className="form-error">{errors.origin}</p>}
@@ -109,7 +109,7 @@ export default function TripForm() {
             <select className={`form-select${errors.destination ? " is-invalid" : ""}`} value={form.destination} onChange={e => update("destination", e.target.value)}>
               <option value="" disabled>—</option>
               {EUROPEAN_CITIES.map(city => (
-                <option key={city.name} value={city.name}>{city.name} ({city.timezone} {utcOffsetLabel(city.timezone)})</option>
+                <option key={city.name} value={city.name}>{city.name} ({timezoneAbbr(city.timezone)})</option>
               ))}
             </select>
             {errors.destination && <p className="form-error">{errors.destination}</p>}
@@ -120,7 +120,7 @@ export default function TripForm() {
           <div className="form-group">
             <label className="form-label">
               {t("form.departureTime")}
-              {departureTimezone && <span className="form-tz-hint"> {departureTimezone} {utcOffsetLabel(departureTimezone)}</span>}
+              {departureTimezone && <span className="form-tz-hint"> {timezoneAbbr(departureTimezone)}</span>}
             </label>
             <input type="datetime-local" className={`form-input${errors.departureTime ? " is-invalid" : ""}`} value={form.departureTime} onChange={e => update("departureTime", e.target.value)} />
             {errors.departureTime && <p className="form-error">{errors.departureTime}</p>}
@@ -135,7 +135,7 @@ export default function TripForm() {
           <div className="form-group">
             <label className="form-label">
               {t("form.arrivalTime")}
-              {arrivalTimezone && <span className="form-tz-hint"> {arrivalTimezone} {utcOffsetLabel(arrivalTimezone)}</span>}
+              {arrivalTimezone && <span className="form-tz-hint"> {timezoneAbbr(arrivalTimezone)}</span>}
             </label>
             <input
               type="datetime-local"

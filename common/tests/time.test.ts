@@ -37,24 +37,23 @@ describe("formatLocalDateTime", () => {
 });
 
 describe("formatCompactDateTime", () => {
-  it("formats in DD/MM/YY HH:MM (+Z) format", () => {
+  it("formats with timezone abbreviation", () => {
     const result = formatCompactDateTime("2026-02-20T12:00:00Z", "Europe/Paris");
-    expect(result).toMatch(/\d{2}\/\d{2}\/\d{2} \d{2}:\d{2} \([+-]\d+\)/);
     expect(result).toContain("20/02/26");
     expect(result).toContain("13:00");
-    expect(result).toContain("(+1)");
+    expect(result).toContain("CET");
   });
 
-  it("handles UTC+0 timezone", () => {
+  it("handles WET timezone", () => {
     const result = formatCompactDateTime("2026-02-20T12:00:00Z", "Europe/Lisbon");
     expect(result).toContain("12:00");
-    expect(result).toContain("(+0)");
+    expect(result).toContain("WET");
   });
 
-  it("handles UTC+2 timezone", () => {
+  it("handles EET timezone", () => {
     const result = formatCompactDateTime("2026-02-20T12:00:00Z", "Europe/Athens");
     expect(result).toContain("14:00");
-    expect(result).toContain("(+2)");
+    expect(result).toContain("EET");
   });
 });
 

@@ -8,7 +8,7 @@ A portfolio project implementing the same **Transit Dashboard** application in t
 |-----------|-------|-----------|
 | **Vue 3** | Composition API, Vue Router, Pinia, Vite | `vue/` |
 | **React** | React 18, React Router, Hooks, Vite | `react/` |
-| **Angular** | Angular 17+, Standalone Components, Angular Router | `angular/` |
+| **Angular** | Angular 18, Standalone Components, Signals, Angular Router | `angular/` |
 
 ## The App
 
@@ -40,7 +40,7 @@ cd vue && npm install && npm run dev
 cd react && npm install && npm run dev
 
 # Angular
-cd angular && npm install && ng serve
+cd angular && npm install && npm start
 ```
 
 ## Purpose

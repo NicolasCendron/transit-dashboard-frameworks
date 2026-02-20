@@ -14,7 +14,7 @@ interface Props {
 
 export default function StatusSelect({ value, options = statusOptions, onChange }: Props) {
   const { t } = useLocale();
-  const mapped = options.map(o => ({ value: o.value, label: t(o.key) }));
+  const mapped = options.map(o => ({ value: o.value, label: t(o.label) }));
 
   return (
     <CustomSelect

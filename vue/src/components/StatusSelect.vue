@@ -14,7 +14,7 @@ const emit = defineEmits<{ "update:modelValue": [value: string] }>();
 const { t } = useLocale();
 
 const mapped = computed(() =>
-  props.options.map(o => ({ value: o.value, label: t(o.key) }))
+  props.options.map(o => ({ value: o.value, label: t(o.label) }))
 );
 
 function badgeClass(value: string) {

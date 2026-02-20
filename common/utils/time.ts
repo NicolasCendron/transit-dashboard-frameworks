@@ -12,8 +12,8 @@ export function formatLocalTime(utcIso: string, timezone: string): string {
 }
 
 /**
- * Format a UTC ISO string into compact date+time with UTC offset.
- * Returns e.g. "20/02/26 14:30 (+2)"
+ * Format a UTC ISO string into compact date+time with timezone abbreviation.
+ * Returns e.g. "20/02/26 14:30 CET"
  */
 export function formatCompactDateTime(utcIso: string, timezone: string): string {
   const date = new Date(utcIso);
@@ -24,23 +24,9 @@ export function formatCompactDateTime(utcIso: string, timezone: string): string 
     hour: "2-digit",
     minute: "2-digit",
     timeZone: timezone,
+    timeZoneName: "short",
   });
-  const parts = formatter.formatToParts(date);
-  const day = parts.find(p => p.type === "day")?.value ?? "00";
-  const month = parts.find(p => p.type === "month")?.value ?? "00";
-  const year = parts.find(p => p.type === "year")?.value ?? "00";
-  const hour = parts.find(p => p.type === "hour")?.value ?? "00";
-  const minute = parts.find(p => p.type === "minute")?.value ?? "00";
-  
-  const offsetFormatter = new Intl.DateTimeFormat("en", {
-    timeZone: timezone,
-    timeZoneName: "shortOffset",
-  });
-  const offsetParts = offsetFormatter.formatToParts(date);
-  const offsetRaw = offsetParts.find(p => p.type === "timeZoneName")?.value ?? "GMT+0";
-  const offset = offsetRaw.replace("GMT", "") || "+0";
-  
-  return `${day}/${month}/${year} ${hour}:${minute} (${offset})`;
+  return formatter.format(date);
 }
 
 /**
