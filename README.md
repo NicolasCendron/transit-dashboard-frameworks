@@ -53,8 +53,15 @@ cd angular && npm install && npm start
 
 ## Testing
 
+All three frameworks run the same shared test suite from `common/tests/` (44 tests: time utils + form validation).
+
 ```bash
-cd vue && npm test   # Vitest — 11 unit tests for common/utils/time.ts
+cd vue && npm test
+cd react && npm test
+cd angular && npm test
+
+cd vue && npm run test:watch   # watch mode (Vue / React share the same script name)
+cd react && npm run test:watch
 ```
 
 ## Purpose
