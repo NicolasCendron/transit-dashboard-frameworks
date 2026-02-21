@@ -12,12 +12,12 @@ common/
     fake-api.ts
     seed-data.ts
   models/
-    trip.ts           # Trip interface, TripStatus type
-    cities.ts         # EUROPEAN_CITIES list + timezoneForCity()
+    trip.ts             # Trip interface, TripStatus type
+    cities.ts           # EUROPEAN_CITIES list + timezoneForCity() + timezoneAbbr() + utcOffsetLabel()
     tripStatusOptions.ts
   utils/
-    time.ts           # formatLocalTime, formatLocalDateTime, formatDuration, isNextDay
-    format.ts         # legacy date formatter
+    time.ts             # formatCompactDateTime, formatDuration, isNextDay, utcToLocalInput, localInputToUtc
+    timezone.ts         # TIMEZONE_OPTIONS, getDefaultTimezone(), setStoredTimezone()
 ```
 
 ## Configuration
@@ -68,25 +68,19 @@ Consumers should catch errors and check for `status` and `message`.
 
 ## Seed Data
 
-8-10 trips with varied statuses, routes, platforms, and drivers. Example:
+10 trips with varied statuses, routes, and drivers. Example shape:
 
 ```typescript
-const SEED_TRIPS: Trip[] = [
+const SEED_TRIPS: Omit<Trip, "id">[] = [
   {
-    id: 1,
-    route: "Line A - Downtown Express",
-    departureTime: "2026-02-20T07:30:00",
-    status: "scheduled",
-    platform: "P1",
+    origin: "Lisbon",
+    destination: "Madrid",
+    departureTime: "2026-02-20T07:30:00.000Z",
+    departureTimezone: "Europe/Lisbon",
+    arrivalTime: "2026-02-20T11:00:00.000Z",
+    arrivalTimezone: "Europe/Madrid",
+    status: "arrived",
     driver: "Maria Santos"
-  },
-  {
-    id: 2,
-    route: "Line B - Airport Shuttle",
-    departureTime: "2026-02-20T08:00:00",
-    status: "delayed",
-    platform: "P3",
-    driver: "João Silva"
   },
   // ... more trips
 ];
@@ -100,10 +94,8 @@ const SEED_TRIPS: Trip[] = [
 
 ## Usage in Each Framework
 
-Each app imports from `common/`:
+Each app imports from `common/` via the `@common` path alias configured in `vite.config.ts`:
 ```typescript
-import { tripApi } from "../../common/api/fake-api";
-import type { Trip } from "../../common/models/trip";
+import { tripApi } from "@common/api/fake-api";
+import type { Trip } from "@common/models/trip";
 ```
-
-Or if bundler config makes this tricky, each app can copy the shared code into its own src. The important thing is the **contract stays identical**.

@@ -7,8 +7,9 @@
 - **Vue Router 4**
 - **Pinia** for state management
 - **Vite** as build tool
+- **Vitest** for unit testing
 
-## Project Structure
+## Project Structure (as implemented)
 
 ```
 vue/
@@ -20,70 +21,60 @@ vue/
     main.ts
     App.vue
     router/
-      index.ts              # Route definitions
+      index.ts
     stores/
-      tripStore.ts          # Pinia store for trips
+      tripStore.ts          # Pinia store — fetchTrips, fetchTrip, createTrip, updateTrip, cancelTrip
     views/
-      TripsList.vue         # /trips
+      TripsList.vue         # /trips — list, search, cancel
       TripDetails.vue       # /trips/:id
       TripForm.vue          # /trips/new and /trips/:id/edit
     components/
-      AppHeader.vue         # Header bar
-      TripTable.vue         # Table rendering trips
-      TripStatusBadge.vue   # Status badge component
-      SearchFilter.vue      # Search input for filtering
-      LoadingSpinner.vue    # Loading state
-      ErrorMessage.vue      # Error state with retry
+      AppHeader.vue         # Header with TimezoneSelect + LangSelect
+      CustomSelect.vue      # Generic dropdown base (slots: #trigger, #option)
+      StatusSelect.vue      # Badge-styled status picker, uses CustomSelect
+      LangSelect.vue        # Language picker, uses CustomSelect
+      TimezoneSelect.vue    # Display timezone picker, uses CustomSelect
+      SearchFilter.vue      # Search input
+      TripStatusBadge.vue   # Status badge
+      TripTable.vue         # Table with timezone-aware time display
+      TripTableSkeleton.vue # Skeleton loader for table
+      TripDetailsSkeleton.vue
+      TripFormSkeleton.vue
+      LoadingSpinner.vue
+      ErrorMessage.vue      # Error state with retry button
     composables/
-      useTrips.ts           # Optional: trip-related composable logic
+      useLocale.ts          # Wraps vue-i18n
+      useTimezone.ts        # Module-level singleton ref; wraps TIMEZONE_OPTIONS from common
+    utils/
+      validation.ts         # validateTripForm() — re-exports from common
+    tests/
+      time.test.ts          # Vitest unit tests for common/utils/time.ts
 ```
 
-## Implementation Steps
+## Key Vue Patterns Demonstrated
 
-### Phase 1: Project Setup
-1. Scaffold with `npm create vite@latest` (Vue + TS)
-2. Install dependencies: `vue-router`, `pinia`
-3. Configure path alias for `common/` or copy shared code
-4. Import `global.css` in `main.ts`
+| Pattern                  | Where                                              |
+|--------------------------|----------------------------------------------------|
+| `<script setup>`        | All components                                     |
+| `ref` / `computed`      | Form state, derived timezone, duration             |
+| `watch`                 | Timezone sync in TripForm; route params in Details |
+| `onMounted`             | Data fetching in all views                         |
+| Pinia `defineStore`     | `tripStore.ts`                                     |
+| Module-level singleton ref | `useTimezone.ts` — shared state without Pinia  |
+| Vue Router `useRoute`   | Reading params                                     |
+| Vue Router `useRouter`  | Programmatic navigation                            |
+| `v-model`              | Form two-way binding                               |
+| `v-if` / `v-else`      | Conditional rendering (loading/error/content)      |
+| `v-for`                | List rendering                                     |
+| Slots (`#trigger`, `#option`) | CustomSelect generic dropdown               |
+| Props + emits           | TripTable → TripsList communication                |
+| `defineProps` / `defineEmits` | Typed component contracts                  |
 
-### Phase 2: Shared Code
-1. Create `common/models/trip.ts` — Trip interface
-2. Create `common/api/seed-data.ts` — seed trips
-3. Create `common/api/fake-api.ts` — full API implementation
-4. Create `common/styles/global.css` — shared styles
+## Testing
 
-### Phase 3: Vue App Core
-1. Set up Vue Router with all routes
-2. Create Pinia trip store with actions: `fetchTrips`, `fetchTrip`, `createTrip`, `updateTrip`, `cancelTrip`
-3. Build `App.vue` with `<AppHeader>` + `<RouterView>`
+```bash
+cd vue && npm test             # vitest run
+cd vue && npm run test:watch   # watch mode
+```
 
-### Phase 4: Views & Components
-1. `TripsList.vue` — fetch on mount, filter, table, actions
-2. `TripDetails.vue` — fetch by ID, display card
-3. `TripForm.vue` — create/edit with validation
-4. Small components: badge, table, search, loading, error
-
-### Phase 5: Polish
-1. Loading/error/empty states on all views
-2. Form validation feedback
-3. Confirm before cancel action
-4. Test all routes and flows manually
-
-## Key Vue Patterns to Demonstrate
-
-| Pattern                  | Where                                    |
-|--------------------------|------------------------------------------|
-| `<script setup>`        | All components                           |
-| `ref` / `reactive`      | Local state in views                     |
-| `computed`              | Filtered trips list                      |
-| `watch` / `watchEffect` | Route param changes in TripDetails       |
-| `onMounted`             | Data fetching                            |
-| Pinia `defineStore`     | tripStore.ts                             |
-| `storeToRefs`           | Destructuring store state reactively     |
-| Vue Router `useRoute`   | Reading params                           |
-| Vue Router `useRouter`  | Programmatic navigation                  |
-| `v-model`              | Form two-way binding                     |
-| `v-if` / `v-else`      | Conditional rendering (loading/error)    |
-| `v-for`                | List rendering                           |
-| Props + emits           | Child component communication            |
-| Template refs           | Form focus management (optional)         |
+11 unit tests covering `formatCompactDateTime`, `formatDuration`, `isNextDay`, `utcToLocalInput`, `localInputToUtc`.
