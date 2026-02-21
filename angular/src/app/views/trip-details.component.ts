@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TripService } from '../services/trip.service';
 import { I18nService } from '../services/i18n.service';
+import { TimezoneService } from '../services/timezone.service';
 import { TripStatusBadgeComponent } from '../components/trip-status-badge.component';
 import { TripDetailsSkeletonComponent } from '../components/trip-details-skeleton.component';
 import { ErrorMessageComponent } from '../components/error-message.component';
@@ -41,12 +42,12 @@ import { formatLocalDateTime, formatDuration } from '@common/utils/time';
             </div>
             <div class="detail-item">
               <label>{{ 'form.departureTime' | t }}</label>
-              <span>{{ formatLocalDateTime(trip.departureTime, trip.departureTimezone) }}</span>
+              <span>{{ formatLocalDateTime(trip.departureTime, timezoneService.timezone()) }}</span>
             </div>
             <div class="detail-item">
               <label>{{ 'form.arrivalTime' | t }}</label>
               <span>
-                {{ trip.arrivalTime && trip.arrivalTimezone ? formatLocalDateTime(trip.arrivalTime, trip.arrivalTimezone) : '—' }}
+                {{ trip.arrivalTime ? formatLocalDateTime(trip.arrivalTime, timezoneService.timezone()) : '—' }}
               </span>
             </div>
             <div class="detail-item">
@@ -97,7 +98,8 @@ export class TripDetailsComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     public tripService: TripService,
-    private i18n: I18nService
+    private i18n: I18nService,
+    public timezoneService: TimezoneService
   ) {}
 
   ngOnInit() {

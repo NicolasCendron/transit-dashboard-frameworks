@@ -3,6 +3,7 @@ import { onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useTripStore } from "@/stores/tripStore";
 import { useLocale } from "@/composables/useLocale";
+import { useTimezone } from "@/composables/useTimezone";
 import { formatCompactDateTime, formatDuration, isNextDay } from "@common/utils/time";
 import TripStatusBadge from "@/components/TripStatusBadge.vue";
 import TripDetailsSkeleton from "@/components/TripDetailsSkeleton.vue";
@@ -12,6 +13,7 @@ const route = useRoute();
 const router = useRouter();
 const store = useTripStore();
 const { t } = useLocale();
+const { timezone } = useTimezone();
 
 function loadTrip() {
   store.fetchTrip(Number(route.params.id));
@@ -59,13 +61,13 @@ onMounted(loadTrip);
           </div>
           <div class="detail-item">
             <label>{{ t("table.departure") }}</label>
-            <span>{{ formatCompactDateTime(store.currentTrip.departureTime, store.currentTrip.departureTimezone) }}</span>
+            <span>{{ formatCompactDateTime(store.currentTrip.departureTime, timezone) }}</span>
           </div>
           <div class="detail-item">
             <label>{{ t("table.arrival") }}</label>
             <span v-if="store.currentTrip.arrivalTime">
-              {{ formatCompactDateTime(store.currentTrip.arrivalTime, store.currentTrip.arrivalTimezone) }}
-              <span v-if="isNextDay(store.currentTrip.departureTime, store.currentTrip.departureTimezone, store.currentTrip.arrivalTime, store.currentTrip.arrivalTimezone)" class="next-day">+1</span>
+              {{ formatCompactDateTime(store.currentTrip.arrivalTime, timezone) }}
+              <span v-if="isNextDay(store.currentTrip.departureTime, store.currentTrip.departureTimezone, store.currentTrip.arrivalTime, store.currentTrip.arrivalTimezone || '')" class="next-day">+1</span>
             </span>
             <span v-else class="text-secondary">—</span>
           </div>

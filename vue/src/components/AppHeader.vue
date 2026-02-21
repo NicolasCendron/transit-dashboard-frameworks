@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useLocale } from "@/composables/useLocale";
 import LangSelect from "@/components/LangSelect.vue";
+import TimezoneSelect from "@/components/TimezoneSelect.vue";
 
 const { t } = useLocale();
 </script>
@@ -11,6 +12,9 @@ const { t } = useLocale();
       {{ t("app.title") }}
       <span class="framework-badge">Vue</span>
     </h1>
-    <LangSelect />
+    <div class="flex gap-1">
+      <TimezoneSelect />
+      <LangSelect />
+    </div>
   </header>
 </template>

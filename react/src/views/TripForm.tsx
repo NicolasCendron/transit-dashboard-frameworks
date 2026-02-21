@@ -2,9 +2,10 @@ import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTripStore } from "@/store/tripStore";
 import { useLocale } from "@/hooks/useLocale";
-import { EUROPEAN_CITIES, timezoneForCity, timezoneAbbr } from "@common/models/cities";
+import { useTimezone } from "@/hooks/useTimezone";
+import { EUROPEAN_CITIES, timezoneForCity } from "@common/models/cities";
 import { tripStatusOptions } from "@common/models/tripStatusOptions";
-import { formatDuration } from "@common/utils/time";
+import { formatDuration, utcToLocalInput, localInputToUtc } from "@common/utils/time";
 import { validateTripForm } from "@common/utils/validation";
 import type { TripStatus } from "@common/models/trip";
 import TripFormSkeleton from "@/components/TripFormSkeleton";
@@ -17,6 +18,7 @@ export default function TripForm() {
   const navigate = useNavigate();
   const store = useTripStore();
   const { t } = useLocale();
+  const { timezone, currentLabel } = useTimezone();
 
   const isEdit = !!id;
   const tripId = Number(id);
@@ -25,37 +27,68 @@ export default function TripForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
 
+  // UTC source of truth — kept in sync with form inputs via timezone conversion
+  const [utcDeparture, setUtcDeparture] = useState("");
+  const [utcArrival, setUtcArrival] = useState("");
+
+  // Load trip for edit mode
   useEffect(() => {
     if (!isEdit) return;
     store.fetchTrip(tripId).then(() => {
       const trip = store.currentTrip;
-      if (trip) setForm({
-        origin: trip.origin,
-        destination: trip.destination,
-        departureTime: trip.departureTime.slice(0, 16),
-        arrivalTime: trip.arrivalTime ? trip.arrivalTime.slice(0, 16) : "",
-        status: trip.status,
-        driver: trip.driver,
-      });
+      if (trip) {
+        setUtcDeparture(trip.departureTime);
+        setUtcArrival(trip.arrivalTime || "");
+        setForm({
+          origin: trip.origin,
+          destination: trip.destination,
+          departureTime: utcToLocalInput(trip.departureTime, timezone),
+          arrivalTime: trip.arrivalTime ? utcToLocalInput(trip.arrivalTime, timezone) : "",
+          status: trip.status,
+          driver: trip.driver,
+        });
+      }
     });
   }, [id]);
+
+  // Display timezone changes → re-display stored UTC in new timezone
+  useEffect(() => {
+    setForm(f => ({
+      ...f,
+      ...(utcDeparture ? { departureTime: utcToLocalInput(utcDeparture, timezone) } : {}),
+      ...(utcArrival ? { arrivalTime: utcToLocalInput(utcArrival, timezone) } : {}),
+    }));
+  }, [timezone]);
 
   function update<K extends keyof typeof emptyForm>(field: K, value: typeof emptyForm[K]) {
     setForm(f => {
       const next = { ...f, [field]: value };
-      if (field === "status" && f.status === "arrived" && value !== "arrived") next.arrivalTime = "";
+      if (field === "status" && f.status === "arrived" && value !== "arrived") {
+        next.arrivalTime = "";
+        setUtcArrival("");
+      }
       return next;
     });
+  }
+
+  function handleDepartureChange(val: string) {
+    setForm(f => ({ ...f, departureTime: val }));
+    setUtcDeparture(val ? localInputToUtc(val, timezone) : "");
+  }
+
+  function handleArrivalChange(val: string) {
+    setForm(f => ({ ...f, arrivalTime: val }));
+    setUtcArrival(val ? localInputToUtc(val, timezone) : "");
   }
 
   const departureTimezone = timezoneForCity(form.origin);
   const arrivalTimezone = timezoneForCity(form.destination);
 
   const duration = useMemo(() => {
-    if (!form.departureTime || !form.arrivalTime) return "—";
-    try { return formatDuration(new Date(form.departureTime).toISOString(), new Date(form.arrivalTime).toISOString()); }
+    if (!utcDeparture || !utcArrival) return "—";
+    try { return formatDuration(utcDeparture, utcArrival); }
     catch { return "—"; }
-  }, [form.departureTime, form.arrivalTime]);
+  }, [utcDeparture, utcArrival]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -67,9 +100,9 @@ export default function TripForm() {
       const payload = {
         origin: form.origin,
         destination: form.destination,
-        departureTime: new Date(form.departureTime).toISOString(),
+        departureTime: utcDeparture,
         departureTimezone,
-        arrivalTime: form.arrivalTime ? new Date(form.arrivalTime).toISOString() : undefined,
+        arrivalTime: utcArrival || undefined,
         arrivalTimezone,
         status: form.status,
         driver: form.driver,
@@ -99,7 +132,7 @@ export default function TripForm() {
             <select className={`form-select${errors.origin ? " is-invalid" : ""}`} value={form.origin} onChange={e => update("origin", e.target.value)}>
               <option value="" disabled>—</option>
               {EUROPEAN_CITIES.map(city => (
-                <option key={city.name} value={city.name}>{city.name} ({timezoneAbbr(city.timezone)})</option>
+                <option key={city.name} value={city.name}>{city.name}</option>
               ))}
             </select>
             {errors.origin && <p className="form-error">{errors.origin}</p>}
@@ -109,7 +142,7 @@ export default function TripForm() {
             <select className={`form-select${errors.destination ? " is-invalid" : ""}`} value={form.destination} onChange={e => update("destination", e.target.value)}>
               <option value="" disabled>—</option>
               {EUROPEAN_CITIES.map(city => (
-                <option key={city.name} value={city.name}>{city.name} ({timezoneAbbr(city.timezone)})</option>
+                <option key={city.name} value={city.name}>{city.name}</option>
               ))}
             </select>
             {errors.destination && <p className="form-error">{errors.destination}</p>}
@@ -120,9 +153,9 @@ export default function TripForm() {
           <div className="form-group">
             <label className="form-label">
               {t("form.departureTime")}
-              {departureTimezone && <span className="form-tz-hint"> {timezoneAbbr(departureTimezone)}</span>}
+              <span className="form-tz-hint"> {currentLabel}</span>
             </label>
-            <input type="datetime-local" className={`form-input${errors.departureTime ? " is-invalid" : ""}`} value={form.departureTime} onChange={e => update("departureTime", e.target.value)} />
+            <input type="datetime-local" className={`form-input${errors.departureTime ? " is-invalid" : ""}`} value={form.departureTime} onChange={e => handleDepartureChange(e.target.value)} />
             {errors.departureTime && <p className="form-error">{errors.departureTime}</p>}
           </div>
           <div className="form-group">
@@ -135,7 +168,7 @@ export default function TripForm() {
           <div className="form-group">
             <label className="form-label">
               {t("form.arrivalTime")}
-              {arrivalTimezone && <span className="form-tz-hint"> {timezoneAbbr(arrivalTimezone)}</span>}
+              <span className="form-tz-hint"> {currentLabel}</span>
             </label>
             <input
               type="datetime-local"
@@ -143,7 +176,7 @@ export default function TripForm() {
               value={form.arrivalTime}
               disabled={form.status !== "arrived"}
               title={form.status !== "arrived" ? t("form.arrivalRequiredWhenArrived") : ""}
-              onChange={e => update("arrivalTime", e.target.value)}
+              onChange={e => handleArrivalChange(e.target.value)}
             />
             {errors.arrivalTime && <p className="form-error">{errors.arrivalTime}</p>}
           </div>

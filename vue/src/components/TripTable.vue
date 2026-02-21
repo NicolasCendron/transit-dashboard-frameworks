@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useLocale } from "@/composables/useLocale";
+import { useTimezone } from "@/composables/useTimezone";
 import { formatCompactDateTime, formatDuration, isNextDay } from "@common/utils/time";
 import type { Trip } from "@common/models/trip";
 import TripStatusBadge from "./TripStatusBadge.vue";
@@ -12,6 +13,7 @@ defineEmits<{
 }>();
 
 const { t } = useLocale();
+const { timezone } = useTimezone();
 </script>
 
 <template>
@@ -33,11 +35,11 @@ const { t } = useLocale();
         <tr v-for="trip in trips" :key="trip.id" class="table-row-clickable" @click="$emit('view', trip.id)">
           <td>{{ trip.origin }}</td>
           <td>{{ trip.destination }}</td>
-          <td class="time-cell">{{ formatCompactDateTime(trip.departureTime, trip.departureTimezone) }}</td>
+          <td class="time-cell">{{ formatCompactDateTime(trip.departureTime, timezone) }}</td>
           <td class="time-cell">
             <template v-if="trip.arrivalTime">
-              {{ formatCompactDateTime(trip.arrivalTime, trip.arrivalTimezone) }}
-              <span v-if="isNextDay(trip.departureTime, trip.departureTimezone, trip.arrivalTime, trip.arrivalTimezone)" class="next-day">+1</span>
+              {{ formatCompactDateTime(trip.arrivalTime, timezone) }}
+              <span v-if="isNextDay(trip.departureTime, trip.departureTimezone, trip.arrivalTime, trip.arrivalTimezone || '')" class="next-day">+1</span>
             </template>
             <span v-else class="text-secondary">—</span>
           </td>

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { TripStatusBadgeComponent } from './trip-status-badge.component';
 import { TranslatePipe } from '../pipes/translate.pipe';
+import { TimezoneService } from '../services/timezone.service';
 import { formatCompactDateTime, formatDuration, isNextDay } from '@common/utils/time';
 import type { Trip } from '@common/models/trip';
 
@@ -30,11 +31,11 @@ import type { Trip } from '@common/models/trip';
             <tr class="table-row-clickable" [routerLink]="['/trips', trip.id]">
               <td>{{ trip.origin }}</td>
               <td>{{ trip.destination }}</td>
-              <td class="time-cell">{{ formatCompactDateTime(trip.departureTime, trip.departureTimezone) }}</td>
+              <td class="time-cell">{{ formatCompactDateTime(trip.departureTime, timezoneService.timezone()) }}</td>
               <td class="time-cell">
-                @if (trip.arrivalTime && trip.arrivalTimezone) {
-                  {{ formatCompactDateTime(trip.arrivalTime, trip.arrivalTimezone) }}
-                  @if (isNextDay(trip.departureTime, trip.departureTimezone, trip.arrivalTime, trip.arrivalTimezone)) {
+                @if (trip.arrivalTime) {
+                  {{ formatCompactDateTime(trip.arrivalTime, timezoneService.timezone()) }}
+                  @if (isNextDay(trip.departureTime, timezoneService.timezone(), trip.arrivalTime, timezoneService.timezone())) {
                     <span class="next-day">+1</span>
                   }
                 } @else {
@@ -86,6 +87,8 @@ export class TripTableComponent {
   formatCompactDateTime = formatCompactDateTime;
   formatDuration = formatDuration;
   isNextDay = isNextDay;
+
+  constructor(public timezoneService: TimezoneService) {}
 
   onCancel(id: number, event: Event) {
     event.stopPropagation();

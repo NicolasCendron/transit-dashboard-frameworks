@@ -58,11 +58,13 @@
   padding: 0;
 }
 
-.lang-select .custom-select-trigger {
+.lang-select .custom-select-trigger,
+.timezone-select .custom-select-trigger {
   justify-content: center;
 }
 
-.lang-select .custom-select-option {
+.lang-select .custom-select-option,
+.timezone-select .custom-select-option {
   text-align: center;
 }
 

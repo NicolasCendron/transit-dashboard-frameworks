@@ -3,9 +3,10 @@ import { ref, computed, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useTripStore } from "@/stores/tripStore";
 import { useLocale } from "@/composables/useLocale";
+import { useTimezone } from "@/composables/useTimezone";
 import { tripStatusOptions } from "@common/models/tripStatusOptions";
-import { EUROPEAN_CITIES, timezoneForCity, timezoneAbbr } from "@common/models/cities";
-import { formatDuration } from "@common/utils/time";
+import { EUROPEAN_CITIES, timezoneForCity } from "@common/models/cities";
+import { formatDuration, utcToLocalInput, localInputToUtc } from "@common/utils/time";
 import { validateTripForm } from "@/utils/validation";
 import type { TripStatus } from "@common/models/trip";
 import TripFormSkeleton from "@/components/TripFormSkeleton.vue";
@@ -15,6 +16,7 @@ const route = useRoute();
 const router = useRouter();
 const store = useTripStore();
 const { t } = useLocale();
+const { timezone, currentLabel } = useTimezone();
 
 const isEdit = computed(() => route.name === "trip-edit");
 const tripId = computed(() => Number(route.params.id));
@@ -28,20 +30,31 @@ const form = ref({
   driver: "",
 });
 
+// UTC source of truth — kept in sync with form inputs via timezone conversion
+const storedUtcDeparture = ref("");
+const storedUtcArrival = ref("");
+
 const departureTimezone = computed(() => timezoneForCity(form.value.origin));
 const arrivalTimezone = computed(() => timezoneForCity(form.value.destination));
 
-const getTzAbbr = (tz: string) => timezoneAbbr(tz);
-
 const calculatedDuration = computed(() => {
-  if (!form.value.departureTime || !form.value.arrivalTime) return "—";
-  try {
-    const depUtc = new Date(form.value.departureTime).toISOString();
-    const arrUtc = new Date(form.value.arrivalTime).toISOString();
-    return formatDuration(depUtc, arrUtc);
-  } catch {
-    return "—";
-  }
+  if (!storedUtcDeparture.value || !storedUtcArrival.value) return "—";
+  try { return formatDuration(storedUtcDeparture.value, storedUtcArrival.value); }
+  catch { return "—"; }
+});
+
+// User edits an input → convert to UTC and store
+watch(() => form.value.departureTime, (val) => {
+  storedUtcDeparture.value = val ? localInputToUtc(val, timezone.value) : "";
+});
+watch(() => form.value.arrivalTime, (val) => {
+  storedUtcArrival.value = val ? localInputToUtc(val, timezone.value) : "";
+});
+
+// Display timezone changes → re-display stored UTC in new timezone
+watch(timezone, (tz) => {
+  if (storedUtcDeparture.value) form.value.departureTime = utcToLocalInput(storedUtcDeparture.value, tz);
+  if (storedUtcArrival.value) form.value.arrivalTime = utcToLocalInput(storedUtcArrival.value, tz);
 });
 
 watch(() => form.value.status, (newStatus, oldStatus) => {
@@ -65,9 +78,9 @@ async function handleSubmit() {
     const payload = {
       origin: form.value.origin,
       destination: form.value.destination,
-      departureTime: new Date(form.value.departureTime).toISOString(),
+      departureTime: storedUtcDeparture.value,
       departureTimezone: departureTimezone.value,
-      arrivalTime: form.value.arrivalTime ? new Date(form.value.arrivalTime).toISOString() : undefined,
+      arrivalTime: storedUtcArrival.value || undefined,
       arrivalTimezone: arrivalTimezone.value,
       status: form.value.status,
       driver: form.value.driver,
@@ -92,14 +105,16 @@ onMounted(async () => {
   if (isEdit.value) {
     await store.fetchTrip(tripId.value);
     if (store.currentTrip) {
-      const t = store.currentTrip;
+      const trip = store.currentTrip;
+      storedUtcDeparture.value = trip.departureTime;
+      storedUtcArrival.value = trip.arrivalTime || "";
       form.value = {
-        origin: t.origin,
-        destination: t.destination,
-        departureTime: t.departureTime.slice(0, 16),
-        arrivalTime: t.arrivalTime ? t.arrivalTime.slice(0, 16) : "",
-        status: t.status,
-        driver: t.driver,
+        origin: trip.origin,
+        destination: trip.destination,
+        departureTime: utcToLocalInput(trip.departureTime, timezone.value),
+        arrivalTime: trip.arrivalTime ? utcToLocalInput(trip.arrivalTime, timezone.value) : "",
+        status: trip.status,
+        driver: trip.driver,
       };
     }
   }
@@ -121,7 +136,7 @@ onMounted(async () => {
           <select v-model="form.origin" class="form-select" :class="{ 'is-invalid': errors.origin }">
             <option value="" disabled>—</option>
             <option v-for="city in EUROPEAN_CITIES" :key="city.name" :value="city.name">
-              {{ city.name }} ({{ getTzAbbr(city.timezone) }})
+              {{ city.name }}
             </option>
           </select>
           <p v-if="errors.origin" class="form-error">{{ errors.origin }}</p>
@@ -132,7 +147,7 @@ onMounted(async () => {
           <select v-model="form.destination" class="form-select" :class="{ 'is-invalid': errors.destination }">
             <option value="" disabled>—</option>
             <option v-for="city in EUROPEAN_CITIES" :key="city.name" :value="city.name">
-              {{ city.name }} ({{ getTzAbbr(city.timezone) }})
+              {{ city.name }}
             </option>
           </select>
           <p v-if="errors.destination" class="form-error">{{ errors.destination }}</p>
@@ -143,7 +158,7 @@ onMounted(async () => {
         <div class="form-group">
           <label class="form-label">
             {{ t("form.departureTime") }}
-            <span v-if="departureTimezone" class="form-tz-hint">{{ getTzAbbr(departureTimezone) }}</span>
+            <span class="form-tz-hint">{{ currentLabel }}</span>
           </label>
           <input
             v-model="form.departureTime"
@@ -164,7 +179,7 @@ onMounted(async () => {
         <div class="form-group">
           <label class="form-label">
             {{ t("form.arrivalTime") }}
-            <span v-if="arrivalTimezone" class="form-tz-hint">{{ getTzAbbr(arrivalTimezone) }}</span>
+            <span class="form-tz-hint">{{ currentLabel }}</span>
           </label>
           <input
             v-model="form.arrivalTime"

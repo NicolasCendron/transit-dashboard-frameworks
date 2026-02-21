@@ -1,5 +1,6 @@
 import { memo } from "react";
 import { useLocale } from "@/hooks/useLocale";
+import { useTimezone } from "@/hooks/useTimezone";
 import { formatCompactDateTime, formatDuration, isNextDay } from "@common/utils/time";
 import type { Trip } from "@common/models/trip";
 import TripStatusBadge from "./TripStatusBadge";
@@ -13,6 +14,7 @@ interface Props {
 
 function TripTable({ trips, onView, onEdit, onCancel }: Props) {
   const { t } = useLocale();
+  const { timezone } = useTimezone();
   return (
     <div className="card">
       <table className="table" aria-label={t("trips.title")}>
@@ -33,12 +35,12 @@ function TripTable({ trips, onView, onEdit, onCancel }: Props) {
             <tr key={trip.id} className="table-row-clickable" onClick={() => onView(trip.id)}>
               <td>{trip.origin}</td>
               <td>{trip.destination}</td>
-              <td className="time-cell">{formatCompactDateTime(trip.departureTime, trip.departureTimezone)}</td>
+              <td className="time-cell">{formatCompactDateTime(trip.departureTime, timezone)}</td>
               <td className="time-cell">
-                {trip.arrivalTime && trip.arrivalTimezone ? (
+                {trip.arrivalTime ? (
                   <>
-                    {formatCompactDateTime(trip.arrivalTime, trip.arrivalTimezone)}
-                    {isNextDay(trip.departureTime, trip.departureTimezone, trip.arrivalTime, trip.arrivalTimezone) && (
+                    {formatCompactDateTime(trip.arrivalTime, timezone)}
+                    {isNextDay(trip.departureTime, trip.departureTimezone, trip.arrivalTime, trip.arrivalTimezone || '') && (
                       <span className="next-day" aria-label="next day">+1</span>
                     )}
                   </>

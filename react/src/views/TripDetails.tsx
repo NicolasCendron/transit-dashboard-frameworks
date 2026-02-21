@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useTripStore } from "@/store/tripStore";
 import { useLocale } from "@/hooks/useLocale";
+import { useTimezone } from "@/hooks/useTimezone";
 import { formatCompactDateTime, formatDuration, isNextDay } from "@common/utils/time";
 import TripStatusBadge from "@/components/TripStatusBadge";
 import TripDetailsSkeleton from "@/components/TripDetailsSkeleton";
@@ -12,6 +13,7 @@ export default function TripDetails() {
   const navigate = useNavigate();
   const store = useTripStore();
   const { t } = useLocale();
+  const { timezone } = useTimezone();
 
   const numId = Number(id);
   useEffect(() => { if (numId) store.fetchTrip(numId); }, [id]);
@@ -44,14 +46,14 @@ export default function TripDetails() {
           </div>
           <div className="detail-item">
             <label>{t("table.departure")}</label>
-            <span>{formatCompactDateTime(trip.departureTime, trip.departureTimezone)}</span>
+            <span>{formatCompactDateTime(trip.departureTime, timezone)}</span>
           </div>
           <div className="detail-item">
             <label>{t("table.arrival")}</label>
-            {trip.arrivalTime && trip.arrivalTimezone ? (
+            {trip.arrivalTime ? (
               <span>
-                {formatCompactDateTime(trip.arrivalTime, trip.arrivalTimezone)}
-                {isNextDay(trip.departureTime, trip.departureTimezone, trip.arrivalTime, trip.arrivalTimezone) && (
+                {formatCompactDateTime(trip.arrivalTime, timezone)}
+                {isNextDay(trip.departureTime, trip.departureTimezone, trip.arrivalTime, trip.arrivalTimezone || '') && (
                   <span className="next-day">+1</span>
                 )}
               </span>

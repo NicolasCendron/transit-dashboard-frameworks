@@ -19,7 +19,9 @@
     "lib": ["ES2022", "dom"],
     "paths": {
       "@common/*": ["../common/*"]
-    }
+    },
+    "baseUrl": ".",
+    "typeRoots": ["node_modules/@types"]
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,

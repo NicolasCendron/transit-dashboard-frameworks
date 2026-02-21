@@ -1,5 +1,6 @@
 import { useLocale } from "@/hooks/useLocale";
 import LangSelect from "./LangSelect";
+import TimezoneSelect from "./TimezoneSelect";
 
 export default function AppHeader() {
   const { t } = useLocale();
@@ -9,7 +10,10 @@ export default function AppHeader() {
         {t("app.title")}
         <span className="framework-badge">React</span>
       </h1>
-      <LangSelect />
+      <div className="flex gap-1">
+        <TimezoneSelect />
+        <LangSelect />
+      </div>
     </header>
   );
 }
